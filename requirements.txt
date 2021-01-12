@@ -1,0 +1,6 @@
+uvicorn
+fastapi
+pyquery
+requests
+
+
