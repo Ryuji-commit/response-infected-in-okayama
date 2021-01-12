@@ -30,7 +30,6 @@ def crawl_infected_person_okayama():
     except Exception as e:
         return {"exception": e.args}
 
-    target_table_body = doc.find('tbody')[0]
     result = []
     for tr_node in doc.find('tbody').children('tr'):
         td_nodes = PyQuery(tr_node)('tr').find('td')
@@ -53,26 +52,30 @@ def crawl_infected_person_okayama():
             "sex": validate_val[3],
             "residence": validate_val[4],
         })
-    print(result, flush=True)
     return result
 
 
 def validate_crawled_data(number, date, age, sex, residence):
     is_integer = re.compile(r'^\d+$', flags=re.MULTILINE)
     is_date = re.compile(r'^(\d+)月(\d+)日$', flags=re.MULTILINE)
-    is_age = re.compile(r'^((\d+)代|\((.*?)市非公表\))$', flags=re.MULTILINE)
-    is_sex = re.compile(r'^((.性)|\((.*?)市非公表\))$', flags=re.MULTILINE)
-    is_residence = re.compile(r'(^.*?(町|市|都|府|道|県)$|^\((.*?)市非公表\)$)', flags=re.MULTILINE)
+    is_age = re.compile(r'(^(\d+)代|^.*?市非公表)', flags=re.MULTILINE)
+    is_sex = re.compile(r'(^(.性)$|^.*?市非公表)', flags=re.MULTILINE)
+    is_residence = re.compile(r'(^.*?(町|市|都|府|道|県)$|^.*?市非公表)', flags=re.MULTILINE)
 
     if is_integer.match(number) is None:
+        print(number, flush=True)
         return False
     if is_date.match(date) is None:
+        print(date, flush=True)
         return False
     if is_age.match(age) is None:
+        print(age, flush=True)
         return False
     if is_sex.match(sex) is None:
+        print(sex, flush=True)
         return False
     if is_residence.match(residence) is None:
+        print(residence, flush=True)
         return False
 
     return [number, date, age, sex, residence]
