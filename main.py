@@ -25,7 +25,7 @@ async def read_item():
 
 def crawl_infected_person_okayama():
     try:
-        response = requests.get('https://www.pref.okayama.jp/page/667843.html')
+        response = requests.get('https://fight-okayama.jp/attribute/')
         response.encoding = response.apparent_encoding
         doc = PyQuery(response.text.encode('utf-8'))
     except Exception as e:
@@ -35,11 +35,11 @@ def crawl_infected_person_okayama():
     for tr_node in doc.find('tbody').children('tr'):
         td_nodes = PyQuery(tr_node)('tr').find('td')
         valid_values = validate_crawled_data(
-            td_nodes.eq(0).text(),
-            td_nodes.eq(1).text(),
-            td_nodes.eq(2).text(),
-            td_nodes.eq(3).text(),
-            td_nodes.eq(4).text()
+            number=td_nodes.eq(0).text(),
+            date=td_nodes.eq(1).text(),
+            residence=td_nodes.eq(2).text(),
+            age=td_nodes.eq(3).text(),
+            sex=td_nodes.eq(4).text()
         )
         if not valid_values:
             continue
@@ -53,8 +53,7 @@ def validate_crawled_data(number: str, date: str, age: str, sex: str, residence:
     if valid_number is False:
         return False
 
-    calculated_year = calculate_year(valid_number)
-    valid_date = validate_date(date, calculated_year)
+    valid_date = validate_date(date)
     if valid_date is False:
         return False
 
@@ -87,29 +86,21 @@ def validate_number(number: str):
     return int(number)
 
 
-# need to fix!!
-def calculate_year(valid_number: int):
-    if valid_number >= 1364:
-        return 2021
-    else:
-        return 2020
-
-
-# (月|日)は元のサイトの誤字
-def validate_date(date: str, year: int):
-    is_date = re.compile(r'^(?P<month>\d+)(月|日)(?P<day>\d+)日$', flags=re.MULTILINE)
+def validate_date(date: str):
+    is_date = re.compile(r'^(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)$', flags=re.MULTILINE)
     match_date = is_date.match(date)
     if match_date is None:
         print(date, flush=True)
         return False
 
+    year = int(match_date.group('year'))
     month = int(match_date.group('month'))
     day = int(match_date.group('day'))
     return datetime.date(year, month, day)
 
 
 def determine_is_disclosed(string: str):
-    is_disclosed = re.compile(r'非公表', flags=re.MULTILINE)
+    is_disclosed = re.compile(r'^(ー|非公表)$', flags=re.MULTILINE)
     if is_disclosed.search(string) is not None:
         return True
     return False
