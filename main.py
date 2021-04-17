@@ -1,10 +1,24 @@
-from fastapi import FastAPI, Query
 from typing import Optional, List
-from pydantic import  BaseModel
+from pydantic import BaseModel
 from pyquery import PyQuery
 import requests
 import re
 import datetime
+from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.orm import Session
+
+from . import crud, models, schemas
+from .database import SessionLocal, engine
+
+models.Base.metadata.create_all(bind=engine)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 class Item(BaseModel):
@@ -43,9 +57,14 @@ def crawl_infected_person_okayama():
         )
         if not valid_values:
             continue
+        create_infected_data()
         result.append(valid_values)
 
     return result
+
+
+def create_infected_data(data: schemas.InfectedDataCreate, valid_values: dict, db: Session = Depends(get_db)):
+    return crud.create_infected_data(db=db, data=data, crawled_data=valid_values)
 
 
 def validate_crawled_data(number: str, date: str, age: str, sex: str, residence: str):
