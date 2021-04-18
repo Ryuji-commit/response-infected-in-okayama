@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+import models, schemas
 
 
 def get_all(db: Session):
@@ -12,14 +12,12 @@ def get_most_recent_infected_data(db: Session):
     return db.query(models.InfectedData).filter(models.InfectedData.date == most_recent_query.date).all()
 
 
-def create_infected_data(db: Session, data: schemas.InfectedDataCreate, crawled_data: dict):
-    db_infected_data = models.InfectedData(number=crawled_data["number"],
-                                           date=crawled_data["date"],
-                                           age=crawled_data["age"],
-                                           sex=crawled_data["sex"],
-                                           residence=crawled_data["residence"]
-                                           )
-    db.add(db_infected_data)
+def get_data_by_number(db: Session, number: int):
+    return db.query(models.InfectedData).filter(models.InfectedData.number == number).first()
+
+
+def create_infected_data(db: Session, data: schemas.InfectedDataCreate):
+    db.add(data)
     db.commit()
-    db.refresh(db_infected_data)
-    return db_infected_data
+    db.refresh(data)
+    return data

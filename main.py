@@ -7,8 +7,8 @@ import datetime
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
-from . import crud, models, schemas
-from .database import SessionLocal, engine
+import crud, models, schemas
+from database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -21,23 +21,17 @@ def get_db():
         db.close()
 
 
-class Item(BaseModel):
-    name: str
-    description: Optional[str] = None
-    price: float
-    tax: float = 10.0
-
-
 app = FastAPI()
 
 
-@app.get("/data/")
-async def read_item():
-    result = crawl_infected_person_okayama()
-    return result
+@app.get("/data/", response_model=List[schemas.InfectedData])
+async def read_item(db: Session = Depends(get_db)):
+    crawl_infected_person_okayama(db=db)
+    items = crud.get_most_recent_infected_data(db=db)
+    return items
 
 
-def crawl_infected_person_okayama():
+def crawl_infected_person_okayama(db: Session = Depends(get_db)):
     try:
         response = requests.get('https://fight-okayama.jp/attribute/')
         response.encoding = response.apparent_encoding
@@ -45,7 +39,6 @@ def crawl_infected_person_okayama():
     except Exception as e:
         return {"exception": e.args}
 
-    result = []
     for tr_node in doc.find('tbody').children('tr'):
         td_nodes = PyQuery(tr_node)('tr').find('td')
         valid_values = validate_crawled_data(
@@ -57,14 +50,15 @@ def crawl_infected_person_okayama():
         )
         if not valid_values:
             continue
-        create_infected_data()
-        result.append(valid_values)
 
-    return result
+        # もしクロールしたnumberが存在していれば保存せずクロールを終了(クロール自体は行うため変更の必要あり)
+        if crud.get_data_by_number(db=db, number=valid_values.number):
+            return
+        create_infected_data(data=valid_values, db=db)
 
 
-def create_infected_data(data: schemas.InfectedDataCreate, valid_values: dict, db: Session = Depends(get_db)):
-    return crud.create_infected_data(db=db, data=data, crawled_data=valid_values)
+def create_infected_data(data: schemas.InfectedDataCreate, db: Session = Depends(get_db)):
+    return crud.create_infected_data(db=db, data=data)
 
 
 def validate_crawled_data(number: str, date: str, age: str, sex: str, residence: str):
@@ -88,13 +82,13 @@ def validate_crawled_data(number: str, date: str, age: str, sex: str, residence:
     if valid_residence is False:
         return False
 
-    return {
-            "number": valid_number,
-            "date": valid_date,
-            "age": valid_age,
-            "sex": valid_sex,
-            "residence": valid_residence,
-    }
+    return models.InfectedData(
+        number=valid_number,
+        date=valid_date,
+        age=valid_age,
+        sex=valid_sex,
+        residence=valid_residence
+    )
 
 
 def validate_number(number: str):

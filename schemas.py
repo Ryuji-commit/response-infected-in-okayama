@@ -1,30 +1,30 @@
 from typing import List, Optional
-from datetime import datetime
+import datetime
 from pydantic import BaseModel
 
 
 class InfectedDataBase(BaseModel):
     number: int
-    date: datetime
-    age: int
-    sex: str
-    residence: str
+    date: datetime.date = None
+    age: int = None
+    sex: str = None
+    residence: str = None
 
 
 class InfectedDataCreate(InfectedDataBase):
     number: int
-    date: datetime
-    age: int
-    sex: str
-    residence: str
+    date: datetime.date = None
+    age: int = None
+    sex: str = None
+    residence: str = None
 
 
 class InfectedData(InfectedDataBase):
     number: int
-    date: datetime
-    age: int
-    sex: str
-    residence: str
+    date: datetime.date = None
+    age: int = None
+    sex: str = None
+    residence: str = None
 
     class Config:
         orm_mode = True
