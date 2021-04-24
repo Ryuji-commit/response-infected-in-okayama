@@ -27,7 +27,7 @@ app = FastAPI()
 @app.get("/data/", response_model=List[schemas.InfectedData])
 async def read_item(db: Session = Depends(get_db)):
     crawl_infected_person_okayama(db=db)
-    items = crud.get_most_recent_infected_data(db=db)
+    items = crud.get_all(db=db)
     return items
 
 
@@ -52,7 +52,7 @@ def crawl_infected_person_okayama(db: Session = Depends(get_db)):
             continue
 
         # もしクロールしたnumberが存在していれば保存せずクロールを終了(クロール自体は行うため変更の必要あり)
-        if crud.get_data_by_number(db=db, number=valid_values.number):
+        if crud.get_data_by_number(db=db, number=valid_values.number) is not None:
             return
         create_infected_data(data=valid_values, db=db)
 
