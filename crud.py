@@ -4,12 +4,27 @@ import models, schemas
 
 
 def get_all(db: Session):
-    return db.query(models.InfectedData).all()
+    all_data = db.query(models.InfectedData).all()
+    if all_data is None:
+        return []
+    return all_data
+
+
+def get_all_data_num(db: Session):
+    return db.query(models.InfectedData).count()
+
+
+def get_recent_data_num(db: Session):
+    most_recent_query = db.query(models.InfectedData).first()
+    return db.query(models.InfectedData).filter(models.InfectedData.date == most_recent_query.date).count()
 
 
 def get_most_recent_infected_data(db: Session):
     most_recent_query = db.query(models.InfectedData).first()
-    return db.query(models.InfectedData).filter(models.InfectedData.date == most_recent_query.date).all()
+    most_recent_data = db.query(models.InfectedData).filter(models.InfectedData.date == most_recent_query.date).all()
+    if most_recent_data is None:
+        return []
+    return most_recent_data
 
 
 def get_data_by_number(db: Session, number: int):
@@ -21,3 +36,11 @@ def create_infected_data(db: Session, data: schemas.InfectedDataCreate):
     db.commit()
     db.refresh(data)
     return data
+
+
+def update_infected_data(db: Session, data: schemas.InfectedDataCreate):
+    update_query = db.query(models.InfectedData).filter(models.InfectedData.number == data.number).first()
+    update_query.date = data.date
+    update_query.age = data.age
+    update_query.sex = data.sex
+    update_query.residence = update_query.residence
