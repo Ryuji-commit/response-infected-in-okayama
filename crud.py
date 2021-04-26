@@ -44,3 +44,21 @@ def update_infected_data(db: Session, data: schemas.InfectedDataCreate):
     update_query.age = data.age
     update_query.sex = data.sex
     update_query.residence = update_query.residence
+
+
+def create_mistaken_data(db: Session, data: schemas.MistakenDataCreate):
+    db.add(data)
+    db.commit()
+    db.refresh(data)
+    return data
+
+
+def get_all_mistaken_data(db: Session):
+    all_data = db.query(models.MistakenData).all()
+    if all_data is None:
+        return []
+    return all_data
+
+
+def get_mistaken_data_by_number(db: Session, number_str: str):
+    return db.query(models.MistakenData).filter(models.MistakenData.number_str == number_str).first()

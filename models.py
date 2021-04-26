@@ -12,3 +12,13 @@ class InfectedData(Base):
     age = Column(Integer, index=True, nullable=True)
     sex = Column(String(10), index=True, nullable=True)
     residence = Column(String(50), index=True, nullable=True)
+
+
+class MistakenData(Base):
+    __tablename__ = "mistaken_data"
+
+    number_str = Column(String(50), primary_key=True, index=True)
+    date_str = Column(String(50), nullable=True, index=True)
+    age_str = Column(String(50), nullable=True, index=True)
+    sex_str = Column(String(50), nullable=True, index=True)
+    residence_str = Column(String(50), nullable=True, index=True)

@@ -63,6 +63,14 @@ def crawl_infected_person_okayama(db: Session = Depends(get_db), is_update: bool
             sex=td_nodes.eq(4).text()
         )
         if not valid_values:
+            if crud.get_mistaken_data_by_number(db=db, number_str=td_nodes.eq(0).text()) is None:
+                create_mistaken_data(models.MistakenData(
+                    number_str=td_nodes.eq(0).text(),
+                    date_str=td_nodes.eq(1).text(),
+                    residence_str=td_nodes.eq(2).text(),
+                    age_str=td_nodes.eq(3).text(),
+                    sex_str=td_nodes.eq(4).text()
+                ), db=db)
             continue
 
         # 値が既に存在していた場合、is_updateがTrueであればUPDATE
@@ -85,11 +93,11 @@ def crawl_infected_person_okayama(db: Session = Depends(get_db), is_update: bool
 
 @router.get("/saveMistakenFormatData/", tags=["background"])
 def save_mistaken_format_data(db: Session = Depends(get_db)):
-    mistaken_format_data = [(validate_crawled_data(number="2310",
-                                                   date="2021/1/29",
-                                                   age="20代",
-                                                   sex="男性",
-                                                   residence="非公表"))]
+    mistaken_format_data = [(validate_crawled_data(number="1320",
+                                                   date="2020/12/30",
+                                                   age="50代",
+                                                   sex="女性",
+                                                   residence="倉敷市"))]
     saved_num = 0
     for data in mistaken_format_data:
         if crud.get_data_by_number(db=db, number=data.number) is not None:
@@ -106,6 +114,10 @@ def create_infected_data(data: schemas.InfectedDataCreate, db: Session = Depends
 
 def update_infected_data(data: schemas.InfectedDataCreate, db: Session = Depends(get_db)):
     return crud.update_infected_data(db=db, data=data)
+
+
+def create_mistaken_data(data: schemas.MistakenDataCreate, db: Session = Depends(get_db)):
+    return crud.create_mistaken_data(db=db, data=data)
 
 
 def validate_crawled_data(number: str, date: str, age: str, sex: str, residence: str):

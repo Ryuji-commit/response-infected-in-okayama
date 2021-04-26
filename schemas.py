@@ -28,3 +28,30 @@ class InfectedData(InfectedDataBase):
 
     class Config:
         orm_mode = True
+
+
+class MistakenDataBase(BaseModel):
+    number_str: str
+    date_str: str = None
+    age_str: str = None
+    sex_str: str = None
+    residence_str: str = None
+
+
+class MistakenDataCreate(MistakenDataBase):
+    number_str: str
+    date_str: str = None
+    age_str: str = None
+    sex_str: str = None
+    residence_str: str = None
+
+
+class MistakenData(MistakenDataBase):
+    number_str: str
+    date_str: str = None
+    age_str: str = None
+    sex_str: str = None
+    residence_str: str = None
+
+    class Config:
+        orm_mode = True
