@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
+from sqlalchemy import func
 
 import models, schemas
 
 
 def get_all(db: Session):
-    all_data = db.query(models.InfectedData).all()
+    all_data = db.query(models.InfectedData).order_by(desc(models.InfectedData.number)).all()
     if all_data is None:
         return []
     return all_data
@@ -15,16 +17,22 @@ def get_all_data_num(db: Session):
 
 
 def get_recent_data_num(db: Session):
-    most_recent_query = db.query(models.InfectedData).first()
+    most_recent_query = db.query(models.InfectedData).order_by(desc(models.InfectedData.number)).first()
     return db.query(models.InfectedData).filter(models.InfectedData.date == most_recent_query.date).count()
 
 
 def get_most_recent_infected_data(db: Session):
-    most_recent_query = db.query(models.InfectedData).first()
-    most_recent_data = db.query(models.InfectedData).filter(models.InfectedData.date == most_recent_query.date).all()
+    most_recent_query = db.query(models.InfectedData).order_by(desc(models.InfectedData.number)).first()
+    most_recent_data = db.query(models.InfectedData).filter(models.InfectedData.date == most_recent_query.date)\
+        .order_by(desc(models.InfectedData.number)).all()
     if most_recent_data is None:
         return []
     return most_recent_data
+
+
+def get_recent_date(db: Session):
+    most_recent_query = db.query(models.InfectedData).order_by(desc(models.InfectedData.number)).first()
+    return most_recent_query.date
 
 
 def get_data_by_number(db: Session, number: int):

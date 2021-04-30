@@ -46,6 +46,12 @@ async def get_recent_data_num(db: Session = Depends(get_db)):
     return num
 
 
+@router.get("/recentDate/", tags=["client"])
+async def get_recent_date(db: Session = Depends(get_db)):
+    recent_date = crud.get_recent_date(db=db)
+    return recent_date
+
+
 @router.get("/allMistakenData/", response_model=List[schemas.MistakenData], tags=["client"])
 async def get_all_mistaken_data(db: Session = Depends(get_db)):
     items = crud.get_all_mistaken_data(db=db)
