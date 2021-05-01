@@ -7,7 +7,13 @@ from sqlalchemy.orm import sessionmaker
 
 load_dotenv(verbose=True)
 
-dotenv_path = join(dirname(__file__), 'env/.dbenv')
+is_product = True
+
+if is_product:
+    dotenv_path = join(dirname(__file__), 'env/.dbenv_product')
+else:
+    dotenv_path = join(dirname(__file__), 'env/.dbenv')
+
 load_dotenv(dotenv_path)
 
 POSTGRES_USER = os.environ.get("POSTGRES_USER")
