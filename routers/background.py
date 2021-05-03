@@ -4,7 +4,7 @@ import re
 import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, BackgroundTasks
 
 import crud
 import models
@@ -25,19 +25,19 @@ def get_db():
 
 
 @router.get("/saveCrawledUnsavedValue/", tags=["background"])
-def save_crawled_data(db: Session = Depends(get_db)):
+def save_crawled_data(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     try:
-        response_message = crawl_infected_person_okayama(db=db, is_update=False)
-        return response_message
+        background_tasks.add_task(crawl_infected_person_okayama, db, False)
+        return "Reception completed"
     except IntegrityError as e:
         return e
 
 
 @router.get("/updateSavedValue/", tags=["background"])
-def update_saved_data(db: Session = Depends(get_db)):
+def update_saved_data(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     try:
-        response_message = crawl_infected_person_okayama(db=db, is_update=True)
-        return response_message
+        background_tasks.add_task(crawl_infected_person_okayama, db, True)
+        return "Reception completed"
     except IntegrityError as e:
         return e
 
@@ -49,9 +49,6 @@ def crawl_infected_person_okayama(db: Session = Depends(get_db), is_update: bool
         doc = PyQuery(response.text.encode('utf-8'))
     except Exception as e:
         return {"exception": e.args}
-
-    updated_num = 0
-    saved_num = 0
 
     for tr_node in doc.find('tbody').children('tr'):
         td_nodes = PyQuery(tr_node)('tr').find('td')
@@ -77,18 +74,11 @@ def crawl_infected_person_okayama(db: Session = Depends(get_db), is_update: bool
         if crud.get_data_by_number(db=db, number=valid_values.number) is not None:
             if is_update:
                 update_infected_data(data=valid_values, db=db)
-                updated_num += 1
             else:
                 return "the crawled data is existing"
         # 値が存在していない場合、値を保存
         else:
             create_infected_data(data=valid_values, db=db)
-            saved_num += 1
-
-    return {
-        "updated": "{}items".format(updated_num),
-        "saved": "{} items".format(saved_num),
-    }
 
 
 @router.get("/saveMistakenFormatData/", tags=["background"])

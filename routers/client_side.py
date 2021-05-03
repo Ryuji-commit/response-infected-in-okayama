@@ -22,12 +22,6 @@ def get_db():
 router = APIRouter()
 
 
-@router.get("/allData/", response_model=List[schemas.InfectedData], tags=["client"])
-async def get_all_data(db: Session = Depends(get_db)):
-    items = crud.get_all(db=db)
-    return items
-
-
 @router.get("/mostRecentData/", response_model=List[schemas.InfectedData], tags=["client"])
 async def get_recent_data(db: Session = Depends(get_db)):
     items = crud.get_most_recent_infected_data(db=db)

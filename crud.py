@@ -5,13 +5,6 @@ from sqlalchemy import func
 import models, schemas
 
 
-def get_all(db: Session):
-    all_data = db.query(models.InfectedData).order_by(desc(models.InfectedData.number)).all()
-    if all_data is None:
-        return []
-    return all_data
-
-
 def get_all_data_num(db: Session):
     return db.query(models.InfectedData).count()
 
