@@ -36,8 +36,12 @@ async def get_all_data_num(db: Session = Depends(get_db)):
 
 @router.get("/recentDataNum/", tags=["client"])
 async def get_recent_data_num(db: Session = Depends(get_db)):
+    recent_date = crud.get_recent_date(db=db)
     num = crud.get_recent_data_num(db=db)
-    return num
+    return {
+        "date": recent_date,
+        "number": num,
+    }
 
 
 @router.get("/recentDate/", tags=["client"])
