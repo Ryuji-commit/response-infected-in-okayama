@@ -52,22 +52,13 @@ def crawl_infected_person_okayama(db: Session = Depends(get_db), is_update: bool
 
     for tr_node in doc.find('tbody').children('tr'):
         td_nodes = PyQuery(tr_node)('tr').find('td')
-        valid_values = validate_crawled_data(
-            number=td_nodes.eq(0).text(),
-            date=td_nodes.eq(1).text(),
-            residence=td_nodes.eq(2).text(),
-            age=td_nodes.eq(3).text(),
-            sex=td_nodes.eq(4).text()
-        )
+        valid_values = validate_crawled_data(**takeout_and_processing_nodes(td_nodes))
         if not valid_values:
             if crud.get_mistaken_data_by_number(db=db, number_str=td_nodes.eq(0).text()) is None:
-                create_mistaken_data(models.MistakenData(
-                    number_str=td_nodes.eq(0).text(),
-                    date_str=td_nodes.eq(1).text(),
-                    residence_str=td_nodes.eq(2).text(),
-                    age_str=td_nodes.eq(3).text(),
-                    sex_str=td_nodes.eq(4).text()
-                ), db=db)
+                create_mistaken_data(
+                    data=models.MistakenData(**takeout_and_processing_nodes(td_nodes)),
+                    db=db
+                )
             continue
 
         # 値が既に存在していた場合、is_updateがTrueであればUPDATE
@@ -79,6 +70,17 @@ def crawl_infected_person_okayama(db: Session = Depends(get_db), is_update: bool
         # 値が存在していない場合、値を保存
         else:
             create_infected_data(data=valid_values, db=db)
+
+
+# クロールしたtdードから順番に値をとりだし、空白を削除
+def takeout_and_processing_nodes(td_nodes: PyQuery):
+    nodes_dict = {}
+    key_name = ("number", "date", "residence", "age", "sex")
+    for i in range(len(key_name)):
+        takeout_node = td_nodes.eq(i).text()
+        processed_node = ''.join(takeout_node.split())
+        nodes_dict[key_name[i]] = processed_node
+    return nodes_dict
 
 
 @router.get("/saveMistakenFormatData/", tags=["background"])
