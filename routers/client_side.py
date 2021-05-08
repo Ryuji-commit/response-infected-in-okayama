@@ -1,6 +1,7 @@
 from typing import Optional, List
 from fastapi import Depends, FastAPI, HTTPException, APIRouter
 from sqlalchemy.orm import Session
+import datetime
 
 import crud
 import models
@@ -48,6 +49,14 @@ async def get_recent_data_num(db: Session = Depends(get_db)):
 async def get_recent_date(db: Session = Depends(get_db)):
     recent_date = crud.get_recent_date(db=db)
     return recent_date
+
+
+@router.get("/countByResidence/{start_date_str}/{end_date_str}", tags=["client"])
+async def get_all_data_num(start_date_str: str, end_date_str: str, db: Session = Depends(get_db)):
+    start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
+    end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    num = crud.get_count_by_residence(db=db, start_date=start_date, end_date=end_date)
+    return num
 
 
 @router.get("/allMistakenData/", response_model=List[schemas.MistakenData], tags=["client"])

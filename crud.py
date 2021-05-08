@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from sqlalchemy import func
+import datetime
 
 import models, schemas
 
@@ -30,6 +31,14 @@ def get_recent_date(db: Session):
 
 def get_data_by_number(db: Session, number: int):
     return db.query(models.InfectedData).filter(models.InfectedData.number == number).first()
+
+
+# 開始日以降終了日以前(その日だけ欲しい場合はstartとend共にその日付を指定)
+def get_count_by_residence(db: Session, start_date: datetime.date, end_date: datetime.date):
+    result = db.query(models.InfectedData.residence, func.count(models.InfectedData.number).label('count')).filter(
+        models.InfectedData.date >= start_date, models.InfectedData.date <= end_date
+    ).group_by(models.InfectedData.residence).all()
+    return result
 
 
 def create_infected_data(db: Session, data: schemas.InfectedDataCreate):
@@ -63,3 +72,9 @@ def get_all_mistaken_data(db: Session):
 
 def get_mistaken_data_by_number(db: Session, number_str: str):
     return db.query(models.MistakenData).filter(models.MistakenData.number_str == number_str).first()
+
+
+def delete_all_mistaken_data(db: Session):
+    exist = db.query(models.MistakenData).first is not None
+    if exist:
+        db.query(models.MistakenData).delete()

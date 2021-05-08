@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 load_dotenv(verbose=True)
 
-is_product = True
+is_product = False
 
 if is_product:
     dotenv_path = join(dirname(__file__), 'env/.dbenv_product')

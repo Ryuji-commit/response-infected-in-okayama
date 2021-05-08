@@ -36,6 +36,7 @@ def save_crawled_data(background_tasks: BackgroundTasks, db: Session = Depends(g
 @router.get("/updateSavedValue/", tags=["background"])
 def update_saved_data(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     try:
+        delete_all_mistaken_data(db=db)
         background_tasks.add_task(crawl_infected_person_okayama, db, True)
         return "Reception completed"
     except IntegrityError as e:
@@ -52,13 +53,16 @@ def crawl_infected_person_okayama(db: Session = Depends(get_db), is_update: bool
 
     for tr_node in doc.find('tbody').children('tr'):
         td_nodes = PyQuery(tr_node)('tr').find('td')
-        valid_values = validate_crawled_data(**takeout_and_processing_nodes(td_nodes))
+        valid_values = validate_crawled_data(
+            **takeout_and_processing_nodes(td_nodes, ("number", "date", "residence", "age", "sex"))
+        )
         if not valid_values:
             if crud.get_mistaken_data_by_number(db=db, number_str=td_nodes.eq(0).text()) is None:
-                create_mistaken_data(
-                    data=models.MistakenData(**takeout_and_processing_nodes(td_nodes)),
-                    db=db
+                mistaken_data_dict = takeout_and_processing_nodes(
+                    td_nodes,
+                    ("number_str", "date_str", "residence_str", "age_str", "sex_str")
                 )
+                create_mistaken_data(data=models.MistakenData(**mistaken_data_dict), db=db)
             continue
 
         # 値が既に存在していた場合、is_updateがTrueであればUPDATE
@@ -72,14 +76,13 @@ def crawl_infected_person_okayama(db: Session = Depends(get_db), is_update: bool
             create_infected_data(data=valid_values, db=db)
 
 
-# クロールしたtdードから順番に値をとりだし、空白を削除
-def takeout_and_processing_nodes(td_nodes: PyQuery):
+# クロールしたtdノードから順番に値をとりだし、空白を削除
+def takeout_and_processing_nodes(td_nodes: PyQuery, keys_name: tuple = ("number", "date", "residence", "age", "sex")):
     nodes_dict = {}
-    key_name = ("number", "date", "residence", "age", "sex")
-    for i in range(len(key_name)):
+    for i in range(len(keys_name)):
         takeout_node = td_nodes.eq(i).text()
         processed_node = ''.join(takeout_node.split())
-        nodes_dict[key_name[i]] = processed_node
+        nodes_dict[keys_name[i]] = processed_node
     return nodes_dict
 
 
@@ -109,6 +112,10 @@ def update_infected_data(data: schemas.InfectedDataCreate, db: Session = Depends
 
 def create_mistaken_data(data: schemas.MistakenDataCreate, db: Session = Depends(get_db)):
     return crud.create_mistaken_data(db=db, data=data)
+
+
+def delete_all_mistaken_data(db: Session = Depends(get_db)):
+    return crud.delete_all_mistaken_data(db=db)
 
 
 def validate_crawled_data(number: str, date: str, age: str, sex: str, residence: str):
