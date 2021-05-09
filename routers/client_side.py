@@ -52,11 +52,27 @@ async def get_recent_date(db: Session = Depends(get_db)):
 
 
 @router.get("/countByResidence/{start_date_str}/{end_date_str}", tags=["client"])
-async def get_all_data_num(start_date_str: str, end_date_str: str, db: Session = Depends(get_db)):
+async def get_count_by_residence(start_date_str: str, end_date_str: str, db: Session = Depends(get_db)):
     start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
     end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
-    num = crud.get_count_by_residence(db=db, start_date=start_date, end_date=end_date)
-    return num
+    counts = crud.get_count_by_residence(db=db, start_date=start_date, end_date=end_date)
+    return counts
+
+
+@router.get("/countBySex/{start_date_str}/{end_date_str}", tags=["client"])
+async def get_count_by_sex(start_date_str: str, end_date_str: str, db: Session = Depends(get_db)):
+    start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
+    end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    count = crud.get_count_by_sex(db=db, start_date=start_date, end_date=end_date)
+    return count
+
+
+@router.get("/countByAge/{start_date_str}/{end_date_str}", tags=["client"])
+async def get_count_by_age(start_date_str: str, end_date_str: str, db: Session = Depends(get_db)):
+    start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
+    end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    count = crud.get_count_by_age(db=db, start_date=start_date, end_date=end_date)
+    return count
 
 
 @router.get("/allMistakenData/", response_model=List[schemas.MistakenData], tags=["client"])

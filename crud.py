@@ -41,6 +41,20 @@ def get_count_by_residence(db: Session, start_date: datetime.date, end_date: dat
     return result
 
 
+def get_count_by_sex(db: Session, start_date: datetime.date, end_date: datetime.date):
+    result = db.query(models.InfectedData.sex, func.count(models.InfectedData.number).label('count')).filter(
+        models.InfectedData.date >= start_date, models.InfectedData.date <= end_date
+    ).group_by(models.InfectedData.sex).all()
+    return result
+
+
+def get_count_by_age(db: Session, start_date: datetime.date, end_date: datetime.date):
+    result = db.query(models.InfectedData.age, func.count(models.InfectedData.number).label('count')).filter(
+        models.InfectedData.date >= start_date, models.InfectedData.date <= end_date
+    ).group_by(models.InfectedData.age).all()
+    return result
+
+
 def create_infected_data(db: Session, data: schemas.InfectedDataCreate):
     db.add(data)
     db.commit()
