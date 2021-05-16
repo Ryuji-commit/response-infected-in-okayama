@@ -34,24 +34,14 @@ def get_data_by_number(db: Session, number: int):
 
 
 # 開始日以降終了日以前(その日だけ欲しい場合はstartとend共にその日付を指定)
-def get_count_by_residence(db: Session, start_date: datetime.date, end_date: datetime.date):
-    result = db.query(models.InfectedData.residence, func.count(models.InfectedData.number).label('count')).filter(
-        models.InfectedData.date >= start_date, models.InfectedData.date <= end_date
-    ).group_by(models.InfectedData.residence).all()
-    return result
-
-
-def get_count_by_sex(db: Session, start_date: datetime.date, end_date: datetime.date):
-    result = db.query(models.InfectedData.sex, func.count(models.InfectedData.number).label('count')).filter(
-        models.InfectedData.date >= start_date, models.InfectedData.date <= end_date
-    ).group_by(models.InfectedData.sex).all()
-    return result
-
-
-def get_count_by_age(db: Session, start_date: datetime.date, end_date: datetime.date):
-    result = db.query(models.InfectedData.age, func.count(models.InfectedData.number).label('count')).filter(
-        models.InfectedData.date >= start_date, models.InfectedData.date <= end_date
-    ).group_by(models.InfectedData.age).all()
+def get_count(db: Session, column_name: models.ColumnName, start_date: datetime.date, end_date: datetime.date):
+    select_column = column_name.col
+    result = db.query(select_column, func.count(models.InfectedData.number).label('count'))
+    if not(start_date is None or end_date is None):
+        result = result.filter(
+            models.InfectedData.date >= start_date, models.InfectedData.date <= end_date
+        )
+    result = result.group_by(select_column).all()
     return result
 
 

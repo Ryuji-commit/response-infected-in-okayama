@@ -51,28 +51,16 @@ async def get_recent_date(db: Session = Depends(get_db)):
     return recent_date
 
 
-@router.get("/countByResidence/{start_date_str}/{end_date_str}", tags=["client"])
-async def get_count_by_residence(start_date_str: str, end_date_str: str, db: Session = Depends(get_db)):
-    start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
-    end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
-    counts = crud.get_count_by_residence(db=db, start_date=start_date, end_date=end_date)
+@router.get("/countBy/{column_name}", tags=["client"])
+async def get_count(
+        column_name: models.ColumnName,
+        start_date_str: Optional[str] = None,
+        end_date_str: Optional[str] = None,
+        db: Session = Depends(get_db)):
+    start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None
+    end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None
+    counts = crud.get_count(db=db, column_name=column_name, start_date=start_date, end_date=end_date)
     return counts
-
-
-@router.get("/countBySex/{start_date_str}/{end_date_str}", tags=["client"])
-async def get_count_by_sex(start_date_str: str, end_date_str: str, db: Session = Depends(get_db)):
-    start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
-    end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
-    count = crud.get_count_by_sex(db=db, start_date=start_date, end_date=end_date)
-    return count
-
-
-@router.get("/countByAge/{start_date_str}/{end_date_str}", tags=["client"])
-async def get_count_by_age(start_date_str: str, end_date_str: str, db: Session = Depends(get_db)):
-    start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
-    end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
-    count = crud.get_count_by_age(db=db, start_date=start_date, end_date=end_date)
-    return count
 
 
 @router.get("/allMistakenData/", response_model=List[schemas.MistakenData], tags=["client"])

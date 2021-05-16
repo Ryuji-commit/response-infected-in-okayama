@@ -91,6 +91,7 @@ def save_mistaken_format_data(db: Session = Depends(get_db)):
     mistaken_format_data = [
         (validate_crawled_data(number="1320", date="2020/12/30", age="50代", sex="女性", residence="倉敷市")),
         (validate_crawled_data(number="3838", date="2021/4/29", age="20代", sex="男性", residence="岡山市")),
+        (validate_crawled_data(number="4515", date="2021/5/6", age="30代", sex="男性", residence="岡山市")),
     ]
     saved_num = 0
     for data in mistaken_format_data:
